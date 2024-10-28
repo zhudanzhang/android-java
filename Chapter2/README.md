@@ -1132,8 +1132,9 @@ public class DialogMain extends AppCompatActivity {
 1. **保存数据**: 在活动的 `onSaveInstanceState()` 方法中，可以将需要保存的状态信息存储到 `Bundle` 对象中。
 
 2. **恢复数据**:
-    - `onCreate()`: 在创建活动时检查 savedInstanceState，并从中恢复数据。
-    - `onRestoreInstanceState()`（推荐）: 当活动重新创建时，可以在这个方法中恢复数据，确保界面状态更新。
+    - `onCreate()`（推荐）: 每次创建活动时都会调用，使用 `savedInstanceState` 可以恢复数据。
+    - `onRestoreInstanceState()`:     - `onRestoreInstanceState()`: 在活动因配置变化（如屏幕旋转）或被系统销毁后重新创建时才会调用
+      - 只在 `savedInstanceState` 不为空时被调用
 
 **场景分析**
 
@@ -1151,12 +1152,9 @@ public class DialogMain extends AppCompatActivity {
    - 可以在此方法中将需要保存的数据（如用户输入、活动状态等）存入 `Bundle` 对象。
    - 系统会自动保存此 `Bundle`，并在活动重新创建时传递回来。
 2. **`onRestoreInstanceState(Bundle savedInstanceState)`**：
-   - 在活动被重新创建时（即从 `onCreate()` 方法中），这个方法会在 `onStart()` 之后调用。
+   - 在活动被重新创建时，这个方法会在 `onStart()` 之后调用。
    - 可以在此方法中从 `Bundle` 中恢复之前保存的状态和数据。
    - **`onCreate()` 方法中的 `savedInstanceState` 参数同样可以用来恢复状态**
-   - **`onRestoreInstanceState()` 提供了一个更明确的位置用于恢复操作**
-   - 如果你选择使用 `onRestoreInstanceState()`，可以移除 `onCreate()` 中的状态恢复逻辑，因为 `onRestoreInstanceState()` 会在适当的时机恢复状态。
-   - 如果简化代码，建议只在 `onCreate()` 中恢复状态，因为它也能处理恢复的场景。
 3. Bundle类型的参数
     * 在一般情况下都是 `null` ，但是如果在活动被系统回收之前有通过 `onSaveInstanceState()` 方法来保存数据的话，这个参数就会带有之前所保存的全部数据
 

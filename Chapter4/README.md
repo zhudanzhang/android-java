@@ -585,45 +585,61 @@ public class RightFragment extends Fragment {
 
 在内存不足时，系统可能会回收处于停止状态的碎片。为了在恢复时保留碎片的数据，可以通过 `onSaveInstanceState()` 方法保存状态。恢复数据可以在以下方法中完成，这些方法都提供了 `Bundle` 参数 `savedInstanceState`：
 
-1. **`onCreate()`**: 在创建碎片时，可以检查 `savedInstanceState` 来恢复数据。
-   
-2. **`onCreateView()`**: 也可以在视图创建时恢复数据，确保界面显示最新的信息。
+1. **`onCreate()`**: 
+   - **用途**: 在碎片首次创建或重建时恢复数据。适合恢复与碎片业务逻辑相关的持久数据。
+   - **使用方式**: 通过 `savedInstanceState` 获取之前保存的数据，进行必要的初始化。
+   - **注意事项**: 在此方法中不适合直接操作视图元素，因为视图可能尚未创建。
 
-3. **`onViewCreated()`**: 在视图创建完成后，可以进一步处理和恢复数据。
+2. **`onCreateView()`**: 
+   - **用途**: 在视图创建时恢复数据。适合设置一些初始数据，但不推荐在这里进行复杂的数据恢复操作。
+   - **使用方式**: 可通过 `savedInstanceState` 获取数据并准备视图。
+   - **注意事项**: 该方法返回的是视图对象，适合在此处对视图进行基本的设置。
 
-**示例代码**
+3. **`onViewCreated()`**（推荐）: 
+   - **用途**: 视图已经创建完毕，可以在此时恢复与界面相关的数据，直接操作视图元素。
+   - **使用方式**: 在此方法中可以恢复数据并更新视图，确保用户界面能够反映最新的状态。
+   - **注意事项**: 此时所有的视图组件都已初始化，适合进行详细的界面更新。
 
 ```java
 @Override
 public void onSaveInstanceState(@NonNull Bundle outState) {
     super.onSaveInstanceState(outState);
-    // 保存数据
-    outState.putString("key", "value");
+    // 保存需要恢复的数据
+    outState.putString("key", "value"); // 将数据存入 Bundle 中
 }
 
 @Override
 public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     if (savedInstanceState != null) {
-        // 恢复数据
+        // 从 savedInstanceState 中恢复数据
         String value = savedInstanceState.getString("key");
+        // 处理恢复的数据，可能需要初始化一些变量
     }
 }
 
 @Override
 public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.right_fragment, container, false);
-    // 可以在这里恢复数据
+    // 这里可以设置视图的基本状态或布局
     return view;
 }
 
 @Override
 public void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    // 进一步处理恢复的数据
+    // 在此处恢复与界面相关的数据
+    if (savedInstanceState != null) {
+        String value = savedInstanceState.getString("key");
+        // 更新视图元素，例如 TextView 的文本
+        TextView textView = view.findViewById(R.id.textView);
+        textView.setText(value); // 恢复状态并更新界面
+    }
 }
 ```
 
+- **保存状态**: 使用 `onSaveInstanceState()` 方法保存需要在碎片被销毁后恢复的数据
+- **恢复状态**: 推荐使用 `onViewCreated()` 方法在视图创建完成后恢复与界面相关的数据，这样可以确保视图元素已经初始化并可以进行操作
 
 ## 动态加载布局
 
@@ -633,7 +649,7 @@ public void onViewCreated(View view, Bundle savedInstanceState) {
 
 限定符（Qualifiers）是一种用于指定资源文件的命名规则，Android 系统会根据设备的配置（如屏幕大小、语言、方向等）自动加载相应的资源文件。
 
-通过使用限定符，可以根据不同设备的屏幕尺寸或分辨率来加载合适的布局，从而实现最佳的用户体验。
+**通过使用限定符，可以根据不同设备的屏幕尺寸或分辨率来加载合适的布局，从而实现最佳的用户体验**
 
 例如，平板设备通常使用双页模式（左侧显示列表，右侧显示内容），而手机则需要分开显示单页内容。
 
@@ -651,7 +667,7 @@ public void onViewCreated(View view, Bundle savedInstanceState) {
        android:layout_height="match_parent" >
        <fragment
            android:id="@+id/left_fragment"
-           android:name="com.example.demo09.LeftFragment"
+           android:name="com.example.demo10.LeftFragment"
            android:layout_width="match_parent"
            android:layout_height="match_parent"/>
    </LinearLayout>
@@ -668,13 +684,13 @@ public void onViewCreated(View view, Bundle savedInstanceState) {
        android:layout_height="match_parent">
        <fragment
            android:id="@+id/left_fragment"
-           android:name="com.example.demo09.LeftFragment"
+           android:name="com.example.demo10.LeftFragment"
            android:layout_width="0dp"
            android:layout_height="match_parent"
            android:layout_weight="1" />
        <fragment
            android:id="@+id/right_fragment"
-           android:name="com.example.demo09.RightFragment"
+           android:name="com.example.demo10.RightFragment"
            android:layout_width="0dp"
            android:layout_height="match_parent"
            android:layout_weight="3" />
@@ -696,7 +712,7 @@ public void onViewCreated(View view, Bundle savedInstanceState) {
 
 更加灵活地为不同设备加载布局，不管它们是不是被系统认定为large，这时就可以使用最小宽度限定符（Smallest-width Qualifier）
 
-最小宽度限定符允许对屏幕的宽度指定一个最小值（以dp为单位）​，然后以这个最小值为临界点，屏幕宽度大于这个值的设备就加载一个布局，屏幕宽度小于这个值的设备就加载另一个布局
+最小宽度限定符**允许对屏幕的宽度指定一个最小值**（以dp为单位）​，然后以这个最小值为临界点，屏幕宽度大于这个值的设备就加载一个布局，屏幕宽度小于这个值的设备就加载另一个布局
 
 在res目录下新建layout-sw600dp文件夹，然后在这个文件夹下新建activity_main.xml布局
 
@@ -707,13 +723,13 @@ public void onViewCreated(View view, Bundle savedInstanceState) {
     android:layout_height="match_parent">
     <fragment
         android:id="@+id/left_fragment"
-        android:name="com.example.demo09.LeftFragment"
+        android:name="com.example.demo10.LeftFragment"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1" />
     <fragment
         android:id="@+id/right_fragment"
-        android:name="com.example.demo09.RightFragment"
+        android:name="com.example.demo10.RightFragment"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="3" />
