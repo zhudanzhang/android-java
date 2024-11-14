@@ -744,16 +744,19 @@ Android 新闻应用：Fragment 与 RecyclerView 实现兼容手机和平板
 
 **1. 项目设置**
 
-新建 `FragmentBestPractice` 项目，确保兼容手机和平板设备。
+新建 `demo11` 项目，确保兼容手机和平板设备。
 
 **依赖库配置**
 在 `app/build.gradle` 中添加必要的依赖：
 ```groovy
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:recyclerview-v7:24.2.1'
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 }
 ```
 
@@ -773,7 +776,7 @@ public class News {
 }
 ```
 
-**3. 新闻内容布局文件与 `NewsContentFragment` 创建**
+**3. 新闻内容详情创建**
 
 **布局文件 `news_content_frag.xml`**
 
@@ -813,7 +816,7 @@ public class News {
 
 **`NewsContentFragment` 类**
 
-继承自Fragment，refresh()方法用于将新闻的标题和内容显示在界面上的：
+继承自`Fragment`，`refresh()` 方法用于将新闻的标题和内容显示在界面上的：
 
 ```java
 public class NewsContentFragment extends Fragment {
@@ -840,7 +843,7 @@ public class NewsContentFragment extends Fragment {
 
 如果想在单页模式中使用的话，还需要再创建一个活动。
 
-右击`com.example.fragmentbestpractice包→New→Activity→EmptyActivity`，新建一个`NewsContentActivity`，并将布局名指定成`news_content`，然后修改`news_content.xml`中的代码
+右击`com.example.demo11→New→Activity→EmptyActivity`，新建一个`NewsContentActivity`，并将布局名指定成`news_content`，然后修改`news_content.xml`中的代码
 
 在单页模式下通过 `NewsContentActivity` 来加载新闻内容。
 
@@ -852,7 +855,7 @@ public class NewsContentFragment extends Fragment {
     android:layout_height="match_parent">
     <fragment
         android:id="@+id/news_content_fragment"
-        android:name="com.example.fragmentbestpractice.NewsContentFragment"
+        android:name="com.example.demo11.NewsContentFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </LinearLayout>
@@ -884,7 +887,7 @@ public class NewsContentActivity extends AppCompatActivity {
 }
 ```
 
-**5. 新闻列表的布局与 `NewsTitleFragment`**
+**5. 新闻列表的布局**
 
 **布局文件 `news_title_frag.xml`**
 用于显示新闻列表的 RecyclerView：
@@ -1023,7 +1026,7 @@ public class NewsTitleFragment extends Fragment {
     android:layout_height="match_parent">
     <fragment
         android:id="@+id/news_title_fragment"
-        android:name="com.example.fragmentbestpractice.NewsTitleFragment"
+        android:name="com.example.demo11.NewsTitleFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </FrameLayout>
@@ -1044,7 +1047,7 @@ public class NewsTitleFragment extends Fragment {
         android:layout_weight="1">
         <fragment
             android:id="@+id/news_title_fragment"
-            android:name="com.example.fragmentbestpractice.NewsTitleFragment"
+            android:name="com.example.demo11.NewsTitleFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </FrameLayout>
@@ -1055,22 +1058,9 @@ public class NewsTitleFragment extends Fragment {
         android:layout_weight="2">
         <fragment
             android:id="@+id/news_content_fragment"
-            android:name="com.example.fragmentbestpractice.NewsContentFragment"
+            android:name="com.example.demo11.NewsContentFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </FrameLayout>
 </LinearLayout>
-```
-
-**7. MainActivity 实现**
-
-`MainActivity` 用于检测双页模式和单页模式，并显示新闻列表：
-```java
-public class MainActivity extends AppCompatActivity {
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-    }
-}
 ```

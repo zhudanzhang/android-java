@@ -40,6 +40,8 @@ Android 提供了很多系统级别的广播，可以通过监听这些广播获
 
 ### 动态注册
 
+> demo12
+
 通过**动态注册**的方式，可以**监听网络变化广播**。实现步骤如下：
 
 1. **创建广播接收器**：定义广播接收器类，并实现广播接收逻辑
@@ -56,9 +58,12 @@ Android 提供了很多系统级别的广播，可以通过监听这些广播获
 
 **运行流程**
 
-1. 在注册完成的时候收到一条广播，然后按下Home键回到主界面（注意不能按Back键，否则onDestroy()方法会执行）​
-2. 接着打开Settings程序→Data usage进入到数据使用详情界面
-3. 然后尝试着开关Cellular data按钮来启动和禁用网络，就会看到有Toast提醒网络发生了变化
+1. 移动数据连接的开启、关闭或状态改变
+    1. 在注册完成的时候收到一条广播，然后按下`Home`键回到主界面（注意不能按Back键，否则onDestroy()方法会执行）​
+    2. 接着打开Settings程序→Data usage进入到数据使用详情界面
+    3. 然后尝试着开关Cellular data按钮来启动和禁用网络，就会看到有Toast提醒网络发生了变化
+2. Wi-Fi 的开启、关闭或状态改变
+
 
 ```java
 public class MainActivity extends AppCompatActivity {
@@ -96,7 +101,9 @@ public class MainActivity extends AppCompatActivity {
 
 1. 首先通过`getSystemService()`方法得到了 `ConnectivityManager` 的实例，这是一个系统服务类，专门用于管理网络连接的
 2. 然后调用`ConnectivityManager`的`getActiveNetworkInfo()`方法可以得到`NetworkInfo`的实例，接着调用`NetworkInfo的isAvailable()`方法，就可以判断出当前是否有网络
-3. **权限声明**：由于访问网络状态需要权限，在 `AndroidManifest.xml` 中声明：
+3. **权限声明**：由于访问网络状态需要权限，在 `AndroidManifest.xml` 中声明
+
+
 ```xml
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 ```
@@ -104,63 +111,20 @@ public class MainActivity extends AppCompatActivity {
 ```java
 class NetworkChangeReceiver extends BroadcastReceiver {
 @Override
-public void onReceive(Context context, Intent intent) {
-    ConnectivityManager connectionManager = (ConnectivityManager)
-        getSystemService(Context.CONNECTIVITY_SERVICE);
-    NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
-    if (networkInfo != null && networkInfo.isAvailable()) {
-        Toast.makeText(context, "network is available", Toast.LENGTH_SHORT).show();
-    } else {
-        Toast.makeText(context, "network is unavailable", Toast.LENGTH_SHORT).show();
+    public void onReceive(Context context, Intent intent) {
+        ConnectivityManager connectionManager = (ConnectivityManager)
+            getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isAvailable()) {
+            Toast.makeText(context, "network is available", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(context, "network is unavailable", Toast.LENGTH_SHORT).show();
+        }
     }
-}
 }
 ```
 
 ### 静态注册
-
-静态注册的广播接收器可以在**应用未启动时接收广播**，常用于**实现开机启动**等功能。
-
-由于静态注册的广播接收器不与具体的活动绑定，当它接收到广播时，没有与之关联的界面上下文，因此无法执行 UI 操作（如弹出对话框）。
-
-- **实现流程**
-    1. 当收到这条广播时就可以在`onReceive()`方法里执行相应的逻辑，从而实现开机启动的功能
-    2. 静态的广播接收器一定要在`AndroidManifest.xml`文件中注册才可以使用
-    3. 使用`Android Studio`提供的快捷方式来创建一个广播接收器，并自动完成在 `AndroidManifest.xml` 中的注册
-    4. 右击`com.example.broadcasttest包→New→Other→Broadcast Receiver`
-        * ![Alt text](assets/image-2.png)
-        * 将广播接收器命名为`BootCompleteReceiver`, `Exported`属性表示是否允许这个广播接收器接收本程序以外的广播，`Enabled`属性表示是否启用这个广播接收器。勾选这两个属性，点击`Finish`完成创建
-- **开机广播接收器代码**：
-```java
-public class BootCompleteReceiver extends BroadcastReceiver {
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        Toast.makeText(context, "Boot Complete", Toast.LENGTH_LONG).show();
-    }
-}
-```
-- **在 `AndroidManifest.xml` 中注册**：
-    - `<application>`标签内出现了一个新的标签`<receiver>`，所有静态的广播接收器都是在这里进行注册的。
-    - 用法其实和<activity>标签非常相似，也是通过`android:name`来指定具体注册哪一个广播接收器，而`enabled`和`exported`属性则是根据刚才勾选的状态自动生成的
-    - 由于Android系统启动完成后会发出一条值为`android.intent.action.BOOT_COMPLETED`的广播，因此在`<intent-filter>`标签里添加了相应的`action``
-```xml
-<receiver
-    android:name=".BootCompleteReceiver"
-    android:enabled="true"
-    android:exported="true">
-    <intent-filter>
-        <action android:name="android.intent.action.BOOT_COMPLETED" />
-    </intent-filter>
-</receiver>
-```
-
-- **权限声明**：监听系统开机广播需要声明权限：
-```xml
-<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-```
-
-- **启动广播接收器**：开机广播只会在应用被启动过一次后才能接收。这意味着应用至少需要被用户手动打开一次，才能在系统启动时接收到广播。
-
 
 静态注册的广播接收器可以在**应用未启动时接收广播**，常用于实现**开机启动**等功能。
 
@@ -173,12 +137,10 @@ public class BootCompleteReceiver extends BroadcastReceiver {
 3. **快捷方式创建广播接收器**：
    - 使用 `Android Studio` 提供的快捷方式来创建广播接收器，并自动在 `AndroidManifest.xml` 中完成注册。
    - 创建步骤：
-     - 右击项目包名，如 `com.example.broadcasttest` → `New` → `Other` → `Broadcast Receiver`。
+     - 右击项目包名，如 `com.example.demo11` → `New` → `Other` → `Broadcast Receiver`。
      - 将广播接收器命名为 `BootCompleteReceiver`，并勾选 `Exported` 和 `Enabled` 属性。
      - `Exported` 表示是否允许接收外部广播，`Enabled` 表示是否启用该接收器。
      - 点击 `Finish` 完成创建。
-
----
 
 **开机广播接收器代码**
 
@@ -192,8 +154,6 @@ public class BootCompleteReceiver extends BroadcastReceiver {
 ```
 
 - 该代码实现了一个简单的广播接收器，当接收到开机广播时，会显示一个 Toast 提示开机完成。
-
----
 
 **在 `AndroidManifest.xml` 中注册**
 
@@ -211,7 +171,6 @@ public class BootCompleteReceiver extends BroadcastReceiver {
 </receiver>
 ```
 
----
 
 **权限声明**
 
@@ -221,13 +180,18 @@ public class BootCompleteReceiver extends BroadcastReceiver {
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 ```
 
----
 
 **注意事项**
 
 - **启动广播接收器**：开机广播只有在应用启动过一次后才能接收。这意味着应用必须至少被用户手动启动一次，之后才可以在设备启动时接收到 `BOOT_COMPLETED` 广播。
 
 ## 发送自定义广播
+
+> demo13
+
+> 从 Android 8.0（API 26）开始，系统对隐式广播进行了限制：
+> 对于静态注册的接收器，隐式广播在应用后台时不再被支持。应用在后台时，隐式广播通常无法被接收，以优化性能和节省电池
+> 虽然动态注册的接收器可以接收隐式广播，但仍需注意应用的前台/后台状态
 
 ### 发送标准广播
 
@@ -252,7 +216,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 
 ```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.broadcasttest">
+    package="com.example.demo13">
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -264,14 +228,14 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.example.broadcasttest.MY_BROADCAST"/>
+                <action android:name="com.example.demo13.MY_BROADCAST"/>
             </intent-filter>
         </receiver>
     </application>
 </manifest>
 ```
 
-这里，`MyBroadcastReceiver` 被配置为接收 `com.example.broadcasttest.MY_BROADCAST` 类型的广播。
+这里，`MyBroadcastReceiver` 被配置为接收 `com.example.demo13.MY_BROADCAST` 类型的广播。
 
 **3. 设计布局文件**
 
@@ -304,12 +268,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Button button = (Button) findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent("com.example.broadcasttest.MY_BROADCAST");
-                sendBroadcast(intent);
-            }
+        button.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MyBroadcastReceiver.class);
+            intent.setAction("com.example.demo13.MY_BROADCAST");
+            sendBroadcast(intent);
         });
     }
 }
@@ -317,11 +279,11 @@ public class MainActivity extends AppCompatActivity {
 
 在这个代码段中，**`sendBroadcast(intent)` 被用于发送自定义广播**。
 
-广播的 `Intent` 包含了一个指定的 action，即 `com.example.broadcasttest.MY_BROADCAST`，这样注册了这个 action 的广播接收器就能收到广播。
+广播的 `Intent` 包含了一个指定的 action，即 `com.example.demo13.MY_BROADCAST`，这样注册了这个 action 的广播接收器就能收到广播。
 
 **5. 运行和效果**
 
-1. 点击按钮时，应用会发送一条名为 `com.example.broadcasttest.MY_BROADCAST` 的广播。
+1. 点击按钮时，应用会发送一条名为 `com.example.demo13.MY_BROADCAST` 的广播。
 2. `MyBroadcastReceiver` 会接收到这条广播并弹出一个 `Toast` 提示。
 
 **6. 传递数据（可选）**
@@ -330,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
 
 ```java
 // 发送广播时附带数据
-Intent intent = new Intent("com.example.broadcasttest.MY_BROADCAST");
+Intent intent = new Intent("com.example.demo13.MY_BROADCAST");
 intent.putExtra("extra_data", "Hello, Broadcast!");
 sendBroadcast(intent);
 
@@ -348,8 +310,7 @@ public void onReceive(Context context, Intent intent) {
 
 **1. 新建项目并创建广播接收器**
 
-
-新建项目 `BroadcastTest2`，并定义一个新的广播接收器 `AnotherBroadcastReceiver`，用于接收来自其他应用的广播。
+新建项目 `demo14`，并定义一个新的广播接收器 `AnotherBroadcastReceiver`，用于接收来自其他应用的广播。
 
 ```java
 public class AnotherBroadcastReceiver extends BroadcastReceiver {
@@ -360,11 +321,11 @@ public class AnotherBroadcastReceiver extends BroadcastReceiver {
 }
 ```
 
-在 `AndroidManifest.xml` 中注册 `AnotherBroadcastReceiver` 接收 `com.example.broadcasttest.MY_BROADCAST` 广播：
+在 `AndroidManifest.xml` 中注册 `AnotherBroadcastReceiver` 接收 `com.example.demo14.MY_BROADCAST` 广播：
 
 ```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.broadcasttest2">
+    package="com.example.demo14">
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -377,18 +338,53 @@ public class AnotherBroadcastReceiver extends BroadcastReceiver {
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.example.broadcasttest.MY_BROADCAST" />
+                <action android:name="com.example.demo14.MY_BROADCAST" />
             </intent-filter>
         </receiver>
     </application>
 </manifest>
 ```
 
-运行 `BroadcastTest2` 项目，并确保 `AnotherBroadcastReceiver` 正常注册。此时，`BroadcastTest` 项目中的广播按钮也会触发这个接收器。
+修改 `demo13` 中 `MainActivity` 代码 
+
+```java
+package com.example.demo13;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.ComponentName;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+
+public class MainActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        Button button = (Button) findViewById(R.id.button);
+
+        button.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MyBroadcastReceiver.class);
+            intent.setAction("com.example.demo13.MY_BROADCAST");
+            sendBroadcast(intent); // 发送给自己
+
+            // 发送给 demo14
+            Intent intentToDemo14 = new Intent("com.example.demo13.MY_BROADCAST");
+            intentToDemo14.setPackage("com.example.demo14"); // 设置目标应用的包名
+            sendBroadcast(intentToDemo14); // 发送给 demo14
+        });
+
+
+    }
+}
+```
 
 **2. 发送标准广播**
 
-在 `BroadcastTest` 项目中点击广播按钮时，`AnotherBroadcastReceiver` 和 `MyBroadcastReceiver` 都会收到广播，证明广播可以跨应用接收。
+在 `demo14` 项目中点击广播按钮时，`AnotherBroadcastReceiver` 和 `MyBroadcastReceiver` 都会收到广播，证明广播可以跨应用接收。
 
 **3. 发送有序广播**
 
@@ -401,6 +397,7 @@ public class AnotherBroadcastReceiver extends BroadcastReceiver {
   - 第二个参数是权限相关的字符串，这里传入 `null` 即可。
 
 ```java
+// demo13 MainActivity.java
 public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -410,7 +407,7 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent("com.example.broadcasttest.MY_BROADCAST");
+                Intent intent = new Intent("com.example.demo14.MY_BROADCAST");
                 sendOrderedBroadcast(intent, null);
             }
         });
@@ -420,17 +417,19 @@ public class MainActivity extends AppCompatActivity {
 
 **4. 设置广播接收器的优先级**
 
+> Android 8.0 及以后：android:priority 只在同一应用的有序广播中有效，而不同应用之间的广播顺序不再受到控制
+
 **使用 `android:priority` 属性为广播接收器设置优先级**，优先级越高，越先接收广播。优先级范围为 `-1000` 到 `1000`。
 
 **修改 `MyBroadcastReceiver` 的优先级：**
 
 ```xml
 <receiver
-    android:name=".MyBroadcastReceiver"
+    android:name=".AnotherBroadcastReceiver"
     android:enabled="true"
     android:exported="true">
-    <intent-filter android:priority="100">
-        <action android:name="com.example.broadcasttest.MY_BROADCAST" />
+    <intent-filter  android:priority="100">
+        <action android:name="com.example.demo13.MY_BROADCAST" />
     </intent-filter>
 </receiver>
 ```
@@ -439,7 +438,10 @@ public class MainActivity extends AppCompatActivity {
 
 **5. 终止广播传递**
 
-- 在 `MyBroadcastReceiver` 中通过**调用 `abortBroadcast()` 方法，阻止广播继续传递**给后续的接收器。
+- 同一应用：在有序广播中，使用 abortBroadcast() 可以停止后续的广播接收器（在同一应用内）接收该广播。
+- 不同应用：在不同应用中，调用 abortBroadcast() 不会有任何效果，广播会继续传递到其他应用的接收器中。
+
+在 `MyBroadcastReceiver` 中通过**调用 `abortBroadcast()` 方法，阻止广播继续传递**给后续的接收器。
 
 ```java
 public class MyBroadcastReceiver extends BroadcastReceiver {
@@ -451,9 +453,9 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 }
 ```
 
-- 重新运行应用程序，并点击发送广播按钮时，只有 `MyBroadcastReceiver` 会接收到广播，而 `AnotherBroadcastReceiver` 无法接收到，因为广播被截断了。
-
 ## 使用本地广播
+
+> demo15
 
 本地广播是一种只在应用内部进行传递的广播机制，解决了系统全局广播带来的安全性问题。使用本地广播，可以确保广播不会被其他应用程序接收，增强数据的安全性。
 
@@ -471,14 +473,10 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 
 **3. 使用本地广播的步骤**
 
-- **`LocalBroadcastManager.getInstance(Context)`**  
-  获取 `LocalBroadcastManager` 的实例，用于管理本地广播
-- **`localBroadcastManager.registerReceiver(BroadcastReceiver receiver, IntentFilter filter)`**  
-  动态注册广播接收器，接收本地广播
-- **`localBroadcastManager.sendBroadcast(Intent intent)`**  
-  发送本地广播
-- **`localBroadcastManager.unregisterReceiver(BroadcastReceiver receiver)`**  
-  取消广播接收器的注册，避免内存泄漏。
+- **`LocalBroadcastManager.getInstance(Context)`**  获取 `LocalBroadcastManager` 的实例，用于管理本地广播
+- **`localBroadcastManager.registerReceiver(BroadcastReceiver receiver, IntentFilter filter)`**  动态注册广播接收器，接收本地广播
+- **`localBroadcastManager.sendBroadcast(Intent intent)`**  发送本地广播
+- **`localBroadcastManager.unregisterReceiver(BroadcastReceiver receiver)`**  取消广播接收器的注册，避免内存泄漏
 
 ```java
 public class MainActivity extends AppCompatActivity {
@@ -499,14 +497,14 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent("com.example.broadcasttest.LOCAL_BROADCAST");
+                Intent intent = new Intent("com.example.demo13.LOCAL_BROADCAST");
                 localBroadcastManager.sendBroadcast(intent);  // 发送本地广播
             }
         });
 
         // 注册本地广播接收器
         intentFilter = new IntentFilter();
-        intentFilter.addAction("com.example.broadcasttest.LOCAL_BROADCAST");
+        intentFilter.addAction("com.example.demo13.LOCAL_BROADCAST");
         localReceiver = new LocalReceiver();
         localBroadcastManager.registerReceiver(localReceiver, intentFilter); // 动态注册
     }
@@ -537,6 +535,8 @@ public class MainActivity extends AppCompatActivity {
 
 ## 实现强制下线功能
 
+> demo16
+
 实现应用中的**强制下线功能**。该功能在实际应用中非常常见，应用程序在别处登录时会强制当前用户下线。
 
 **1. 思路概述**
@@ -551,42 +551,42 @@ public class MainActivity extends AppCompatActivity {
 
 - **ActivityCollector类**：用于添加、移除和关闭所有活动。
 
-    ```java
-    public class ActivityCollector {
-        public static List<Activity> activities = new ArrayList<>();
-        public static void addActivity(Activity activity) {
-            activities.add(activity);
-        }
-        public static void removeActivity(Activity activity) {
-            activities.remove(activity);
-        }
-        public static void finishAll() {
-            for (Activity activity : activities) {
-                if (!activity.isFinishing()) {
-                    activity.finish();
-                }
-            }
-            activities.clear();
-        }
+```java
+public class ActivityCollector {
+    public static List<Activity> activities = new ArrayList<>();
+    public static void addActivity(Activity activity) {
+        activities.add(activity);
     }
-    ```
+    public static void removeActivity(Activity activity) {
+        activities.remove(activity);
+    }
+    public static void finishAll() {
+        for (Activity activity : activities) {
+            if (!activity.isFinishing()) {
+                activity.finish();
+            }
+        }
+        activities.clear();
+    }
+}
+```
 
 - **BaseActivity类**：作为所有活动的基类，在`onCreate()`和`onDestroy()`中添加和移除活动。
 
-    ```java
-    public class BaseActivity extends AppCompatActivity {
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            ActivityCollector.addActivity(this);
-        }
-        @Override
-        protected void onDestroy() {
-            super.onDestroy();
-            ActivityCollector.removeActivity(this);
-        }
+```java
+public class BaseActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        ActivityCollector.addActivity(this);
     }
-    ```
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        ActivityCollector.removeActivity(this);
+    }
+}
+```
 
 **3. 登录界面实现**
 
@@ -597,15 +597,46 @@ public class MainActivity extends AppCompatActivity {
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <LinearLayout android:orientation="horizontal" ... >
-        <TextView ... android:text="Account:" />
-        <EditText android:id="@+id/account" ... />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="60dp">
+        <TextView
+            android:layout_width="90dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:textSize="18sp"
+            android:text="Account:" />
+        <EditText
+            android:id="@+id/account"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical" />
     </LinearLayout>
-    <LinearLayout android:orientation="horizontal" ... >
-        <TextView ... android:text="Password:" />
-        <EditText android:id="@+id/password" ... android:inputType="textPassword" />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="60dp">
+        <TextView
+            android:layout_width="90dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:textSize="18sp"
+            android:text="Password:" />
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical"
+            android:inputType="textPassword" />
     </LinearLayout>
-    <Button android:id="@+id/login" ... android:text="Login" />
+    <Button
+        android:id="@+id/login"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Login" />
 </LinearLayout>
 ```
 
@@ -662,7 +693,7 @@ public class LoginActivity extends BaseActivity {
 ```
 
 - **MainActivity类**：点击按钮后发送强制下线广播
-    * 在按钮的点击事件里面发送了一条广播，广播的值为`com.example.broadcastbestpractice.FORCE_OFFLINE`，这条广播就是用于通知程序强制用户下线的
+    * 在按钮的点击事件里面发送了一条广播，广播的值为`com.example.demo16.FORCE_OFFLINE`，这条广播就是用于通知程序强制用户下线的
     * 也就是说强制用户下线的逻辑并不是写在`MainActivity`里的，而是应该写在接收这条广播的广播接收器里面，这样强制下线的功能就不会依附于任何的界面，不管是在程序的任何地方，只需要发出这样一条广播，就可以完成强制下线的操作了
 
 ```java
@@ -675,7 +706,7 @@ public class MainActivity extends BaseActivity {
         forceOffline.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent("com.example.broadcastbestpractice.FORCE_OFFLINE");
+                Intent intent = new Intent("com.example.demo16.FORCE_OFFLINE");
                 sendBroadcast(intent);
             }
         });
@@ -697,13 +728,25 @@ public class MainActivity extends BaseActivity {
 因为始终需要保证只有处于栈顶的活动才能接收到这条强制下线广播，非栈顶的活动不应该也没有必要去接收这条广播，所以写在`onResume()`和`onPause()`方法里就可以很好地解决这个问题，而不是在`onCreate()`和`onDestroy()`方法里，当一个活动失去栈顶位置时就会自动取消广播接收器的注册
 
 ```java
+package com.example.demo16;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Bundle;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
 public class BaseActivity extends AppCompatActivity {
     private ForceOfflineReceiver receiver;
     @Override
     protected void onResume() {
         super.onResume();
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("com.example.broadcastbestpractice.FORCE_OFFLINE");
+        intentFilter.addAction("com.example.demo16.FORCE_OFFLINE");
         receiver = new ForceOfflineReceiver();
         registerReceiver(receiver, intentFilter);
     }
@@ -714,6 +757,11 @@ public class BaseActivity extends AppCompatActivity {
             unregisterReceiver(receiver);
             receiver = null;
         }
+    }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        ActivityCollector.addActivity(this);
     }
     class ForceOfflineReceiver extends BroadcastReceiver {
         @Override
@@ -733,6 +781,11 @@ public class BaseActivity extends AppCompatActivity {
             builder.show();
         }
     }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        ActivityCollector.removeActivity(this);
+    }
 }
 ```
 
@@ -742,7 +795,7 @@ public class BaseActivity extends AppCompatActivity {
 
 ```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.broadcastbestpractice">
+    package="com.example.demo16">
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -759,3 +812,8 @@ public class BaseActivity extends AppCompatActivity {
     </application>
 </manifest>
 ```
+
+1. 首先会进入到登录界面，并可以在这里输入账号和密码
+2. 如果输入的账号是admin，密码是123456，点击登录按钮就会进入到程序的主界面
+3. 这时点击一下发送广播的按钮，就会发出一条强制下线的广播，ForceOfflineReceiver里收到这条广播后会弹出一个对话框提示用户已被强制下线
+4. 这时用户将无法再对界面的任何元素进行操作，只能点击确定按钮，然后会重新回到登录界面。这样，强制下线功能就已经完整地实现了

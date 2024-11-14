@@ -78,7 +78,7 @@ Android运行时权限在内容提供器示例中将会使用，且在开发中�
 ### 在程序运行时申请权限
 
 1. **项目创建**：
-   - 新建`RuntimePermissionTest`项目，使用`CALL_PHONE`权限作为示例。
+   - 新建`demo21`项目，使用`CALL_PHONE`权限作为示例。
 
 2. **布局文件**：
    - 修改`activity_main.xml`布局，定义一个拨打电话的按钮：
@@ -293,9 +293,9 @@ Android运行时权限在内容提供器示例中将会使用，且在开发中�
 - 使用电话簿应用添加联系人，以便后续读取。
 - 创建两个联系人，输入姓名和手机号。
 
-**2. 创建ContactsTest项目**
+**2. 创建demo22项目**
 
-- 新建一个名为`ContactsTest`的项目。
+- 新建一个名为`demo22`的项目。
 
 **3. 修改布局文件**
 
@@ -317,61 +317,62 @@ Android运行时权限在内容提供器示例中将会使用，且在开发中�
 
 - 创建`MainActivity`并编写相关代码：
   ```java
-  public class MainActivity extends AppCompatActivity {
-      ArrayAdapter<String> adapter;
-      List<String> contactsList = new ArrayList<>();
+    public class MainActivity extends AppCompatActivity {
+        ArrayAdapter<String> adapter;
+        List<String> contactsList = new ArrayList<>();
 
-      @Override
-      protected void onCreate(Bundle savedInstanceState) {
-          super.onCreate(savedInstanceState);
-          setContentView(R.layout.activity_main);
-          ListView contactsView = findViewById(R.id.contacts_view);
-          adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, contactsList);
-          contactsView.setAdapter(adapter);
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_main);
+            ListView contactsView = findViewById(R.id.contacts_view);
+            adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, contactsList);
+            contactsView.setAdapter(adapter);
 
-          if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-              ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS}, 1);
-          } else {
-              readContacts();
-          }
-      }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS}, 1);
+            } else {
+                readContacts();
+            }
+        }
 
-      private void readContacts() {
-          Cursor cursor = null;
-          try {
-              // 查询联系人数据
-              cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
-              if (cursor != null) {
-                  while (cursor.moveToNext()) {
-                      String displayName = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                      String number = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                      contactsList.add(displayName + "\n" + number);
-                  }
-                  adapter.notifyDataSetChanged();
-              }
-          } catch (Exception e) {
-              e.printStackTrace();
-          } finally {
-              if (cursor != null) {
-                  cursor.close();
-              }
-          }
-      }
+        private void readContacts() {
+            Cursor cursor = null;
+            try {
+                // 查询联系人数据
+                cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
+                if (cursor != null) {
+                    while (cursor.moveToNext()) {
+                        String displayName = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                        String number = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                        contactsList.add(displayName + "\n" + number);
+                    }
+                    adapter.notifyDataSetChanged();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        }
 
-      @Override
-      public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-          switch (requestCode) {
-              case 1:
-                  if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                      readContacts();
-                  } else {
-                      Toast.makeText(this, "You denied the permission", Toast.LENGTH_SHORT).show();
-                  }
-                  break;
-              default:
-          }
-      }
-  }
+        @Override
+        public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            switch (requestCode) {
+                case 1:
+                    if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        readContacts();
+                    } else {
+                        Toast.makeText(this, "You denied the permission", Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+                default:
+            }
+        }
+    }
   ```
 
 **5. 处理运行时权限**
@@ -521,15 +522,16 @@ Android运行时权限在内容提供器示例中将会使用，且在开发中�
 
 ###  实现跨程序数据共享
 
+> demo23 demo24
+
 **1. 项目基础设置**
 
-- 在DatabaseTest项目中加入外部访问接口。
-- 去除MyDatabaseHelper中使用Toast弹出创建数据库成功的提示。
+- 去除MyDatabaseHelper中使用Toast弹出创建数据库成功的提示，因为跨程序访问时能直接使用Toast。
 
 **2. 创建内容提供器**
 
-- 右击`com.example.databasetest`包 → New → Other → Content Provider
-- 设置内容提供器名称为`DatabaseProvider`，`authority`为`com.example.databasetest.provider`
+- 右击`com.example.demo23`包 → New → Other → Content Provider
+- 设置内容提供器名称为`DatabaseProvider`，`authority`为`com.example.demo23.provider`
 - 勾选`Exported`和`Enabled`属性，点击Finish完成创建
 
 **3. 修改DatabaseProvider代码**
@@ -539,7 +541,7 @@ public class DatabaseProvider extends ContentProvider {
     public static final int BOOK_ITEM = 1;
     public static final int CATEGORY_DIR = 2;
     public static final int CATEGORY_ITEM = 3;
-    public static final String AUTHORITY = "com.example.databasetest.provider";
+    public static final String AUTHORITY = "com.example.demo23.provider";
     private static UriMatcher uriMatcher;
     private MyDatabaseHelper dbHelper;
 
@@ -657,13 +659,13 @@ public class DatabaseProvider extends ContentProvider {
     public String getType(Uri uri) {
         switch (uriMatcher.match(uri)) {
             case BOOK_DIR:
-                return "vnd.android.cursor.dir/vnd.com.example.databasetest.provider.book";
+                return "vnd.android.cursor.dir/vnd.com.example.demo23.provider.book";
             case BOOK_ITEM:
-                return "vnd.android.cursor.item/vnd.com.example.databasetest.provider.book";
+                return "vnd.android.cursor.item/vnd.com.example.demo23.provider.book";
             case CATEGORY_DIR:
-                return "vnd.android.cursor.dir/vnd.com.example.databasetest.provider.category";
+                return "vnd.android.cursor.dir/vnd.com.example.demo23.provider.category";
             case CATEGORY_ITEM:
-                return "vnd.android.cursor.item/vnd.com.example.databasetest.provider.category";
+                return "vnd.android.cursor.item/vnd.com.example.demo23.provider.category";
         }
         return null;
     }
@@ -706,7 +708,7 @@ public class DatabaseProvider extends ContentProvider {
 
 ```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.databasetest">
+    package="com.example.demo23">
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -716,7 +718,7 @@ public class DatabaseProvider extends ContentProvider {
         ...
         <provider
             android:name=".DatabaseProvider"
-            android:authorities="com.example.databasetest.provider"
+            android:authorities="com.example.demo23.provider"
             android:enabled="true"
             android:exported="true">
         </provider>
@@ -730,10 +732,10 @@ public class DatabaseProvider extends ContentProvider {
   - `android:authorities`：指定 `DatabaseProvider` 的 authority。
   - `android:enabled` 和 `android:exported`：根据勾选状态自动生成，表示允许其他应用程序访问 `DatabaseProvider`。
 
-**6. 创建ProviderTest项目**
+**6. 创建demo24项目**
 
-- 从模拟器中删除DatabaseTest程序，重新安装以清除遗留数据。
-- 创建新项目ProviderTest，设计布局文件`activity_main.xml`。
+- 从手机/模拟器中删除demo23程序，重新安装以清除遗留数据，重新运行一下，点击创建数据库，之后关闭应用程序
+- 创建新项目demo24，设计布局文件`activity_main.xml`
 
 **7. 布局文件示例**
 
@@ -765,7 +767,7 @@ public class MainActivity extends AppCompatActivity {
         addData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Uri uri = Uri.parse("content://com.example.databasetest.provider/book");
+                Uri uri = Uri.parse("content://com.example.demo23.provider/book");
                 ContentValues values = new ContentValues();
                 values.put("name", "A Clash of Kings");
                 values.put("author", "George Martin");
@@ -780,7 +782,7 @@ public class MainActivity extends AppCompatActivity {
         queryData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Uri uri = Uri.parse("content://com.example.databasetest.provider/book");
+                Uri uri = Uri.parse("content://com.example.demo23.provider/book");
                 Cursor cursor = getContentResolver().query(uri, null, null, null, null);
                 if (cursor != null) {
                     while (cursor.moveToNext()) {
@@ -805,7 +807,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (newId != null) {
-                    Uri uri = Uri.parse("content://com.example.databasetest.provider/book/" + newId);
+                    Uri uri = Uri.parse("content://com.example.demo23.provider/book/" + newId);
                     ContentValues values = new ContentValues();
                     values.put("name", "A Clash of Kings (Updated)");
                     getContentResolver().update(uri, values, null, null);
@@ -818,7 +820,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (newId != null) {
-                    Uri uri = Uri.parse("content://com.example.databasetest.provider/book/" + newId);
+                    Uri uri = Uri.parse("content://com.example.demo23.provider/book/" + newId);
                     getContentResolver().delete(uri, null, null);
                 }
             }
@@ -854,7 +856,7 @@ public class MainActivity extends AppCompatActivity {
 **9. 数据操作步骤**
 
 1. **添加数据**：
-   - 点击 **Add To Book** 按钮，数据将添加到 `DatabaseTest` 程序的数据库中。
+   - 点击 **Add To Book** 按钮，数据将添加到 `demo23` 程序的数据库中。
 
 2. **查询数据**：
    - 点击 **Query From Book** 按钮，检查数据是否成功添加。
@@ -867,4 +869,4 @@ public class MainActivity extends AppCompatActivity {
    - 点击 **Delete From Book** 按钮，删除指定数据。
    - 最后，点击 **Query From Book** 按钮确认数据已被成功删除。
 
-通过以上操作，可以验证跨程序共享数据功能的成功实现。任何程序都可以轻松访问 `DatabaseTest` 中的数据，同时也无需担心隐私数据泄漏的问题
+通过以上操作，可以验证跨程序共享数据功能的成功实现。任何程序都可以轻松访问 `demo23` 中的数据，同时也无需担心隐私数据泄漏的问题
